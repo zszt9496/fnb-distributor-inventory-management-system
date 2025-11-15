@@ -1,6 +1,7 @@
 // src/pages/Purchases.js
 import React, { useState, useEffect } from "react";
 import { getSupplierPurchases } from "../api/inventoryApi";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Purchases = () => {
   const [purchases, setPurchases] = useState([]);
@@ -8,6 +9,13 @@ const Purchases = () => {
   const [status, setStatus] = useState("");
 
   const purchaseStatuses = ["ordered", "completed"];
+  // Initialize the navigate function
+  const navigate = useNavigate();
+
+  // Function to handle row click and navigate
+  const handleRowClick = (purchaseId) => {
+    navigate(`/purchases/${purchaseId}`);
+  };
 
   useEffect(() => {
     const loadPurchases = async () => {
@@ -58,7 +66,13 @@ const Purchases = () => {
           </thead>
           <tbody>
             {purchases.map((p) => (
-              <tr key={p.purchase_id}>
+              // The entire <tr> is now clickable
+              <tr
+                key={p.purchase_id}
+                onClick={() => handleRowClick(p.purchase_id)}
+                // Apply a style hint for better user experience
+                style={{ cursor: "pointer" }}
+              >
                 <td>{p.purchase_id}</td>
                 <td>{p.supplier?.name || "N/A"}</td>
                 <td>{new Date(p.purchase_date).toLocaleDateString()}</td>
@@ -69,6 +83,10 @@ const Purchases = () => {
           </tbody>
         </table>
       )}
+
+      <p style={{ color: "#555", fontSize: "0.65em" }}>
+        💡 Click any row to view the detailed purchase items.
+      </p>
     </div>
   );
 };

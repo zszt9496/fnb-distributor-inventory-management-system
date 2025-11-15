@@ -30,6 +30,14 @@ export const getCustomers = (filters) =>
 export const getCustomerOrders = (filters) =>
   api.get("/customer-orders", { params: filters });
 
+/**
+ * Fetches the details of a single Customer Order, including its items.
+ * Corresponds to: GET /api/customer-orders/:orderId
+ * @param {string} orderId The ID of the order to fetch.
+ */
+export const getCustomerOrderDetails = (orderId) =>
+  api.get(`/customer-orders/${orderId}`);
+
 // --- Supplier Endpoints (suppliers.js)
 export const getSuppliers = (filters) =>
   api.get("/suppliers", { params: filters });
@@ -39,10 +47,22 @@ export const getSupplierRegions = () => api.get("/suppliers/meta/regions");
 export const getSupplierPurchases = (filters) =>
   api.get("/supplier-purchases", { params: filters });
 
-// Example CRUD methods (for Products)
-// export const createProduct = (data) => api.post('/products', data);
-// export const updateProduct = (id, data) => api.put(`/products/${id}`, data);
-// export const deleteProduct = (id) => api.delete(`/products/${id}`);
+/**
+ * Fetches the details of a single Supplier Purchase, including its items.
+ * Corresponds to: GET /api/supplier-purchases/:purchaseId
+ * @param {string} purchaseId The ID of the purchase to fetch.
+ */
+export const getSupplierPurchaseDetails = (purchaseId) =>
+  api.get(`/supplier-purchases/${purchaseId}`);
+
+export const createPurchaseItem = (purchaseId, data) =>
+  api.post(`/supplier-purchases/${purchaseId}/items`, data);
+
+export const updatePurchaseItem = (purchaseId, itemId, data) =>
+  api.put(`/supplier-purchases/${purchaseId}/items/${itemId}`, data);
+
+export const deletePurchaseItem = (purchaseId, itemId) =>
+  api.delete(`/supplier-purchases/${purchaseId}/items/${itemId}`);
 
 console.log(API_BASE_URL);
 

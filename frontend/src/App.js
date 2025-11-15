@@ -7,6 +7,7 @@ import Customers from "./pages/Customers";
 import Orders from "./pages/Orders";
 import Suppliers from "./pages/Suppliers";
 import Purchases from "./pages/Purchases";
+import PurchaseDetails from "./pages/PurchaseDetails";
 import "./App.css"; // We'll add some basic CSS below
 
 const Sidebar = () => (
@@ -33,7 +34,7 @@ const App = () => (
           <Route path="/orders" element={<Orders />} />
           <Route path="/suppliers" element={<Suppliers />} />
           <Route path="/purchases" element={<Purchases />} />
-          {/* Add detail routes here: <Route path="/products/:id" element={<ProductDetail />} /> */}
+          <Route path="/purchases/:purchaseId" element={<PurchaseDetails />} />
         </Routes>
       </main>
     </div>

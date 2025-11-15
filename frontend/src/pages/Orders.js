@@ -76,6 +76,10 @@ const Orders = () => {
           </tbody>
         </table>
       )}
+
+      <p style={{ color: "#555", fontSize: "0.65em" }}>
+        💡 Click any row to view the detailed order items.
+      </p>
     </div>
   );
 };
