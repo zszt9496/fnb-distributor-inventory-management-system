@@ -7,7 +7,7 @@ const Purchases = () => {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
 
-  const purchaseStatuses = ["Draft", "Ordered", "Received", "Paid"];
+  const purchaseStatuses = ["ordered", "completed"];
 
   useEffect(() => {
     const loadPurchases = async () => {
