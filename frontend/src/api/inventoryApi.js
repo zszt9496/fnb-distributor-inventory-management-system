@@ -51,6 +51,9 @@ export const updateOrderItem = (orderId, itemId, updatedData) => {
 export const deleteOrderItem = (orderId, itemId) =>
   api.delete(`/customer-orders/${orderId}/items/${itemId}`);
 
+export const getOrderStatsMonthlyRevenue = (year) =>
+  api.get("/customer-orders/stats/monthly-revenue", { params: { year } });
+
 // --- Supplier Endpoints (suppliers.js)
 export const getSuppliers = (filters) =>
   api.get("/suppliers", { params: filters });

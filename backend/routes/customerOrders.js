@@ -407,4 +407,56 @@ router.delete("/:orderId/items/:itemId", async (req, res) => {
   }
 });
 
+//Get monthly revenue for a specific year
+router.get("/stats/monthly-revenue", async (req, res) => {
+  try {
+    const { year } = req.query;
+
+    if (!year) {
+      return res.status(400).json({ error: "Year is required" });
+    }
+
+    const monthlyRevenue = await CustomerOrder.findAll({
+      attributes: [
+        [
+          // SQLite uses strftime('%m', date_column) for month
+          sequelize.fn("strftime", "%m", sequelize.col("order_date")),
+          "month",
+        ],
+        [sequelize.fn("SUM", sequelize.col("total_amount")), "totalRevenue"],
+      ],
+      where: {
+        // SQLite uses strftime('%Y', date_column) for year
+        order_date: sequelize.where(
+          sequelize.fn("strftime", "%Y", sequelize.col("order_date")),
+          year
+        ),
+        status: {
+          [Op.ne]: "cancelled",
+        },
+      },
+      group: [sequelize.fn("strftime", "%m", sequelize.col("order_date"))],
+      order: [
+        [sequelize.fn("strftime", "%m", sequelize.col("order_date")), "ASC"],
+      ],
+      raw: true,
+    });
+
+    const fullData = Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      totalRevenue: 0.0,
+    }));
+
+    monthlyRevenue.forEach((item) => {
+      // strftime returns '01', '02', etc., so parseInt is necessary
+      const monthIndex = parseInt(item.month) - 1;
+      fullData[monthIndex].totalRevenue = parseFloat(item.totalRevenue);
+    });
+
+    res.json(fullData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

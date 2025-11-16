@@ -414,6 +414,10 @@ const PurchaseDetails = () => {
               {formatCurrency(purchase.total_amount)}
             </span>
           </p>
+
+          <p>
+            <strong>Note:</strong> <span>{purchase.notes}</span>
+          </p>
         </div>
       </div>
 

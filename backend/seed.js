@@ -9,6 +9,36 @@ const {
   CustomerOrderItem,
 } = require("./models");
 
+// Helper map to quickly reference product selling prices by their array index
+// Used to calculate the cheaper purchase cost (80% of selling price)
+const PRODUCT_SELLING_PRICES = [
+  12.5, // [0] Organic Rice 5kg
+  18.9, // [1] Olive Oil 1L
+  3.5, // [2] Fresh Milk 1L
+  4.2, // [3] Pasta 500g
+  5.8, // [4] Orange Juice 1L
+  22.0, // [5] Coffee Beans 500g
+  2.5, // [6] Canned Tomatoes 400g
+  6.5, // [7] Soy Sauce 1L
+  8.5, // [8] Chicken Breast 1kg
+  10.0, // [9] Mixed Salad Greens 1kg
+  35.0, // [10] Sugar 25kg Bag
+  15.0, // [11] Sparkling Water 500ml
+  4.0, // [12] Sea Salt 1kg
+  7.5, // [13] Frozen French Fries 2kg
+  80.0, // [14] Beef Tenderloin 5kg
+];
+
+/**
+ * Calculates a cheaper purchase cost (80% of selling price) and rounds to 2 decimals.
+ * @param {number} productIndex The index of the product in the PRODUCTS array.
+ * @returns {number} The calculated unit cost.
+ */
+const getPurchaseCost = (productIndex) => {
+  const sellingPrice = PRODUCT_SELLING_PRICES[productIndex];
+  return parseFloat((sellingPrice * 0.8).toFixed(2));
+};
+
 const seedDatabase = async () => {
   try {
     await sequelize.sync({ force: true });
@@ -92,6 +122,7 @@ const seedDatabase = async () => {
 
     console.log(`Suppliers created: ${suppliers.length}`);
 
+    // Note: unit_price here is the selling price to the customer
     const products = await Product.bulkCreate([
       {
         name: "Organic Rice 5kg",
@@ -318,10 +349,13 @@ const seedDatabase = async () => {
 
     console.log(`Customers created: ${customers.length}`);
 
+    // --- Supplier Purchases (unit_cost and total_amount recalculated) ---
+
+    // Purchase 1: New Total = 2500.0 (Was 3125.0)
     const purchase1 = await SupplierPurchase.create({
       supplier_id: suppliers[0].supplier_id,
       purchase_date: new Date("2024-10-15"),
-      total_amount: 3125.0,
+      total_amount: 2500.0,
       status: "completed",
       notes: "Regular monthly stock",
     });
@@ -329,31 +363,32 @@ const seedDatabase = async () => {
     await SupplierPurchaseItem.bulkCreate([
       {
         purchase_id: purchase1.purchase_id,
-        product_id: products[0].product_id,
+        product_id: products[0].product_id, // Rice (Selling: 12.5)
         quantity: 100,
-        unit_cost: 12.5,
-        subtotal: 1250.0,
+        unit_cost: getPurchaseCost(0), // 10.00
+        subtotal: 1000.0,
       },
       {
         purchase_id: purchase1.purchase_id,
-        product_id: products[2].product_id,
+        product_id: products[2].product_id, // Milk (Selling: 3.5)
         quantity: 200,
-        unit_cost: 3.5,
-        subtotal: 700.0,
+        unit_cost: getPurchaseCost(2), // 2.80
+        subtotal: 560.0,
       },
       {
         purchase_id: purchase1.purchase_id,
-        product_id: products[6].product_id,
+        product_id: products[6].product_id, // Canned Tomatoes (Selling: 2.5)
         quantity: 470,
-        unit_cost: 2.5,
-        subtotal: 1175.0,
+        unit_cost: getPurchaseCost(6), // 2.00
+        subtotal: 940.0,
       },
     ]);
 
+    // Purchase 2: New Total = 760.0 (Was 950.0)
     const purchase2 = await SupplierPurchase.create({
       supplier_id: suppliers[2].supplier_id,
       purchase_date: new Date("2024-10-20"),
-      total_amount: 950.0,
+      total_amount: 760.0,
       status: "completed",
       notes: "Beverage restock",
     });
@@ -361,24 +396,25 @@ const seedDatabase = async () => {
     await SupplierPurchaseItem.bulkCreate([
       {
         purchase_id: purchase2.purchase_id,
-        product_id: products[4].product_id,
+        product_id: products[4].product_id, // Orange Juice (Selling: 5.8)
         quantity: 50,
-        unit_cost: 5.8,
-        subtotal: 290.0,
+        unit_cost: getPurchaseCost(4), // 4.64
+        subtotal: 232.0,
       },
       {
         purchase_id: purchase2.purchase_id,
-        product_id: products[5].product_id,
+        product_id: products[5].product_id, // Coffee Beans (Selling: 22.0)
         quantity: 30,
-        unit_cost: 22.0,
-        subtotal: 660.0,
+        unit_cost: getPurchaseCost(5), // 17.60
+        subtotal: 528.0,
       },
     ]);
 
+    // Purchase 3: New Total = 2000.0 (Was 2500.0)
     const purchase3 = await SupplierPurchase.create({
       supplier_id: suppliers[3].supplier_id,
       purchase_date: new Date("2025-10-01"),
-      total_amount: 2500.0,
+      total_amount: 2000.0,
       status: "completed",
       notes: "Monthly produce delivery",
     });
@@ -386,17 +422,18 @@ const seedDatabase = async () => {
     await SupplierPurchaseItem.bulkCreate([
       {
         purchase_id: purchase3.purchase_id,
-        product_id: products[9].product_id,
+        product_id: products[9].product_id, // Mixed Salad Greens (Selling: 10.0)
         quantity: 250,
-        unit_cost: 10.0,
-        subtotal: 2500.0,
+        unit_cost: getPurchaseCost(9), // 8.00
+        subtotal: 2000.0,
       },
     ]);
 
+    // Purchase 4: New Total = 1960.0 (Was 2550.0)
     const purchase4 = await SupplierPurchase.create({
       supplier_id: suppliers[4].supplier_id,
       purchase_date: new Date("2025-11-10"),
-      total_amount: 2550.0,
+      total_amount: 1960.0,
       status: "ordered",
       notes: "Urgent meat delivery",
     });
@@ -404,24 +441,25 @@ const seedDatabase = async () => {
     await SupplierPurchaseItem.bulkCreate([
       {
         purchase_id: purchase4.purchase_id,
-        product_id: products[8].product_id,
+        product_id: products[8].product_id, // Chicken Breast (Selling: 8.5)
         quantity: 100,
-        unit_cost: 8.5,
-        subtotal: 850.0,
+        unit_cost: getPurchaseCost(8), // 6.80
+        subtotal: 680.0,
       },
       {
         purchase_id: purchase4.purchase_id,
-        product_id: products[14].product_id,
+        product_id: products[14].product_id, // Beef Tenderloin (Selling: 80.0)
         quantity: 20,
-        unit_cost: 85.0,
-        subtotal: 1700.0,
+        unit_cost: getPurchaseCost(14), // 64.00
+        subtotal: 1280.0,
       },
     ]);
 
+    // Purchase 5: New Total = 3680.0 (Was 4700.0)
     const purchase5 = await SupplierPurchase.create({
       supplier_id: suppliers[1].supplier_id,
       purchase_date: new Date("2025-11-12"),
-      total_amount: 4700.0,
+      total_amount: 3680.0,
       status: "completed",
       notes: "Annual bulk stock",
     });
@@ -429,22 +467,23 @@ const seedDatabase = async () => {
     await SupplierPurchaseItem.bulkCreate([
       {
         purchase_id: purchase5.purchase_id,
-        product_id: products[10].product_id,
+        product_id: products[10].product_id, // Sugar (Selling: 35.0)
         quantity: 120,
-        unit_cost: 35.0,
-        subtotal: 4200.0,
+        unit_cost: getPurchaseCost(10), // 28.00
+        subtotal: 3360.0,
       },
       {
         purchase_id: purchase5.purchase_id,
-        product_id: products[12].product_id,
+        product_id: products[12].product_id, // Sea Salt (Selling: 4.0)
         quantity: 100,
-        unit_cost: 5.0,
-        subtotal: 500.0,
+        unit_cost: getPurchaseCost(12), // 3.20
+        subtotal: 320.0,
       },
     ]);
 
     console.log(`Supplier purchases created: 5`);
 
+    // --- Customer Orders (No change, as unit_price is still the selling price) ---
     const order1 = await CustomerOrder.create({
       customer_id: customers[0].customer_id,
       order_date: new Date("2025-11-01"),
